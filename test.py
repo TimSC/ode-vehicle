@@ -213,24 +213,10 @@ class Cylinder:
 class Composite:
 	def __init__(self, world, space, density, rad):
 
-		# Set parameters for drawing the body
-		self.radius = rad
-
-		# Create body
-		self.body1 = ode.Body(world)
-		M = ode.Mass()
-		M.setCappedCylinder(density, 3, self.radius, 1.)
-		self.body1.setMass(M)
-
-		self.body2 = ode.Body(world)
-		M = ode.Mass()
-		M.setCappedCylinder(density, 3, self.radius, 1.)
-		self.body2.setMass(M)
-
-		self.body3 = ode.Body(world)
-		M = ode.Mass()
-		M.setCappedCylinder(density * 10., 3, self.radius, 1.)
-		self.body3.setMass(M)
+		self.parts = []
+		self.parts.append(Cylinder(world, space, 1000., 0.1))
+		self.parts.append(Cylinder(world, space, 1000., 0.1))
+		self.parts.append(Cylinder(world, space, 10000., 0.1))
 
 		self.setPosition((0.,0.,0.))
 
@@ -253,53 +239,23 @@ class Composite:
 		self.geom3.setBody(self.body3)
 		self.geom1.ty = "composite"
 
-	def DrawBall(self, obj):
-		x,y,z = obj.getPosition()
-		R = obj.getRotation()
-		rot = [R[0], R[3], R[6], 0.,
-			   R[1], R[4], R[7], 0.,
-			   R[2], R[5], R[8], 0.,
-			   x, y, z, 1.0]
-		glPushMatrix()
-		glMultMatrixd(rot)
-
-		glScalef(self.radius, self.radius, self.radius)
-		gluCylinder(gluNewQuadric(), self.radius, self.radius, 1., 10, 2)
-
-		glPopMatrix()
-
 	def Draw(self):
-		self.DrawBall(self.body1)
-		self.DrawBall(self.body2)
-		self.DrawBall(self.body3)
+		for part in self.parts:
+			part.Draw()
 
 	def setPosition(self, pos):
-		#self.body1.setPosition(pos)
-		#self.body2.setPosition((pos[0]+self.radius*2.1,pos[1],pos[2]))
-		#self.body3.setPosition((pos[0]+self.radius*1.05,pos[1]+self.radius*1.05,pos[2]))
-		self.body1.setPosition(pos)
-		self.body2.setPosition((pos[0],pos[1]+self.radius*2.05,pos[2]))
-		self.body3.setPosition((pos[0],pos[1]+self.radius*4.1,pos[2]))
-
-	def setRotation(self, rot):
-		self.body1.setRotation(rot)
-		self.body2.setRotation(rot)
-		self.body3.setRotation(rot)
+		
+		self.parts[0].setPosition(pos)
+		self.parts[1].setPosition((pos[0]+1.,pos[1],pos[2]))
+		self.parts[2].setPosition((pos[0],pos[1]+1.,pos[2]))
 
 	def getPosition(self):
 		return self.body1.getPosition()
-
-	def getRotation(self):
-		return self.body1.getRotation()
-
-	def addForce(self, f):
-		self.body1.addForce(f)
-		self.body2.addForce(f)
-
+		
 	def Test(self):
 		#self.body1.addTorque((100.0,0.,0.))
 		#self.body2.addTorque((100.0,0.,0.))
-		self.joint.addTorques(200.,0.,0.)
+		#self.joint.addTorques(200.,0.,0.)
 		pass
 
 # drop_object
@@ -308,29 +264,13 @@ def drop_object():
 
 	global bodies, geom, counter, objcount, objs
 
-	a = random.randint(0,2)
-	if a == 0:
-		obj = Box(world, space, 1000, 1.0,0.2,0.2)
-	if a == 1:
-		obj = Cylinder(world, space, 1000, 0.1)
-	if a == 2:
-		obj = Ball(world, space, 1000, 0.1)
-
-	#if random.randint(0,2) % 2 == 0:
-	#	body, geom = create_box(world, space, 1000, 1.0,0.2,0.2)
-	#else:
-	#	body, geom = create_ball(world, space, 1000, 0.4)
-	#if random.randint(0,2) % 2 == 0:
-	#	obj = Box(world, space, 1000, 1.0,0.2,0.2)
-	#else:
-	#obj = Box(world, space, 1000, 1.0,0.2,0.2)
-	#obj = Cylinder(world, space, 1000, 0.1)
+	obj = Composite(world, space, 1000, 0.1)
 
 	obj.setPosition( (random.gauss(0,0.1),3.0,random.gauss(0,0.1)) )
-	theta = random.uniform(0,2*pi)
-	ct = cos (theta)
-	st = sin (theta)
-	obj.setRotation([ct, 0., -st, 0., 1., 0., st, 0., ct])
+	#theta = random.uniform(0,2*pi)
+	#ct = cos (theta)
+	#st = sin (theta)
+	#obj.setRotation([ct, 0., -st, 0., 1., 0., st, 0., ct])
 
 	objs.append(obj)
 	counter=0
