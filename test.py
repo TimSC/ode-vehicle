@@ -238,23 +238,31 @@ class Composite:
 		self.parts = []
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
-		self.parts.append(Cylinder(world, space, 10000., 0.1))
+		self.parts.append(Cylinder(world, space, 1000., 0.1))
+		self.parts.append(Cylinder(world, space, 1000., 0.1))
 
 		self.setPosition((0.,0.,0.))
 
 		self.parts.append(Rod(self.parts[0], self.parts[2]))
 		self.parts.append(Rod(self.parts[1], self.parts[2]))
-		self.parts.append(Rod(self.parts[0], self.parts[1]))
+		self.parts.append(Rod(self.parts[0], self.parts[3]))
+		self.parts.append(Rod(self.parts[1], self.parts[3]))
+		self.parts.append(Rod(self.parts[2], self.parts[3]))
 
 		# Connect body2 with body1
 		#self.j2 = ode.SliderJoint(world)
 		#self.j2.attach(self.body1, self.body2)
 		#self.j2.setAnchor( (self.radius*2.1,0.,0.) )
 		self.joint = ode.AMotor(world)
-		self.joint.attach(self.part[0], self.part[2])
+		self.joint.attach(self.parts[0].body, self.parts[2].body)
 		self.joint.setNumAxes(1)
 		#self.joint.setMode(ode.AMotorEuler)
 		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
+
+		self.joint2 = ode.AMotor(world)
+		self.joint2.attach(self.parts[1].body, self.parts[2].body)
+		self.joint2.setNumAxes(1)
+		self.joint2.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
 
 	def Draw(self):
 		for part in self.parts:
@@ -264,7 +272,8 @@ class Composite:
 		
 		self.parts[0].setPosition(pos)
 		self.parts[1].setPosition((pos[0]+1.,pos[1],pos[2]))
-		self.parts[2].setPosition((pos[0]+0.51,pos[1]+0.3,pos[2]))
+		self.parts[2].setPosition((pos[0]+0.51,pos[1]+0.45,pos[2]))
+		self.parts[3].setPosition((pos[0]+0.51,pos[1]+0.15,pos[2]))
 
 	def getPosition(self):
 		return self.body1.getPosition()
@@ -272,7 +281,8 @@ class Composite:
 	def UpdateInternalForces(self):
 		#self.body1.addTorque((100.0,0.,0.))
 		#self.body2.addTorque((100.0,0.,0.))
-		#self.joint.addTorques(200.,0.,0.)
+		self.joint.addTorques(-20.,0.,0.)
+		#self.joint2.addTorques(-20.,0.,0.)
 		for part in self.parts:
 			part.UpdateInternalForces()
 
