@@ -142,6 +142,8 @@ class Ball:
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.8, 0.2, 1.0))
 		glutSolidSphere(1, 10, 10)
 
+
+
 		glPopMatrix()
 
 	def setPosition(self, pos):
@@ -193,6 +195,21 @@ class Cylinder:
 
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.8, 0.9, 1.0))
 		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
+
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.8, 0.9, 1.0))
+		glNormal3f(0.,0.,-1.)
+		glBegin(GL_POLYGON)
+		for i in range(10):
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), 0.)
+		glEnd()
+
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.8, 0.9, 1.0))
+		glBegin(GL_POLYGON)
+		glNormal3f(0.,0.,1.)
+		for i in range(10):
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), self.l)
+		glEnd()
+
 		glPopMatrix()
 
 	def setPosition(self, pos):
@@ -245,6 +262,8 @@ class Rod:
 class Motor:
 	def __init__(self, obj, torque = 30., maxspeed = 15.):
 		self.torque = torque
+		self.l = 1.1
+		self.radius = 0.1
 
 		# Create body
 		self.body = ode.Body(world)
@@ -271,6 +290,7 @@ class Motor:
 		return self.body.getPosition()
 
 	def Draw(self):
+
 		x,y,z = self.body.getPosition()
 		R = self.body.getRotation()
 		rot = [R[0], R[3], R[6], 0.,
@@ -280,8 +300,21 @@ class Motor:
 		glPushMatrix()
 		glMultMatrixd(rot)
 
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.1, 0.1, 1.0))
-		gluCylinder(gluNewQuadric(), 0.1, 0.1, 1.1, 10, 3)
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.2, 0.2, 0.2, 1.0))
+		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
+
+		glNormal3f(0.,0.,-1.)
+		glBegin(GL_POLYGON)
+		for i in range(10):
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), 0.)
+		glEnd()
+
+		glBegin(GL_POLYGON)
+		glNormal3f(0.,0.,1.)
+		for i in range(10):
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), self.l)
+		glEnd()
+
 		glPopMatrix()
 
 	def UpdateInternalForces(self):
