@@ -35,7 +35,9 @@ def prepare_GL(cam, targ):
 	glDisable(GL_LIGHTING)
 	glEnable(GL_LIGHTING)
 	glEnable(GL_NORMALIZE)
-	glShadeModel(GL_FLAT)
+	glEnable (GL_BLEND)
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glShadeModel(GL_SMOOTH)
 
 	# Projection
 	glMatrixMode(GL_PROJECTION)
@@ -85,6 +87,7 @@ class Box:
 
 		sx,sy,sz = self.boxsize
 		glScalef(sx, sy, sz)
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.5, 0.2, 1.0))
 		glutSolidCube(1)
 
 		glPopMatrix()
@@ -136,6 +139,7 @@ class Ball:
 		glMultMatrixd(rot)
 
 		glScalef(self.radius, self.radius, self.radius)
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.8, 0.2, 1.0))
 		glutSolidSphere(1, 10, 10)
 
 		glPopMatrix()
@@ -187,6 +191,7 @@ class Cylinder:
 		glPushMatrix()
 		glMultMatrixd(rot)
 
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.8, 0.9, 1.0))
 		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
 		glPopMatrix()
 
@@ -221,7 +226,18 @@ class Rod:
 		pass
 
 	def Draw(self):
-		pass
+		p1 = self.obj1.body.getPosition()
+		p2 = self.obj2.body.getPosition()
+
+		#glDisable(GL_LIGHTING)
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.5, 0.8, 0.5))
+		glBegin(GL_POLYGON)
+		glVertex3f(p1[0],p1[1],p1[2]+0.)
+		glVertex3f(p2[0],p2[1],p2[2]+0.)
+		glVertex3f(p2[0],p2[1],p2[2]+1.)
+		glVertex3f(p1[0],p1[1],p1[2]+1.)
+		glEnd()
+		#glEnable(GL_LIGHTING)
 
 	def UpdateInternalForces(self):
 		pass
@@ -264,6 +280,7 @@ class Motor:
 		glPushMatrix()
 		glMultMatrixd(rot)
 
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.1, 0.1, 1.0))
 		gluCylinder(gluNewQuadric(), 0.1, 0.1, 1.1, 10, 3)
 		glPopMatrix()
 
@@ -352,7 +369,7 @@ class Terrain:
 	def Draw(self):
 		#print self.body.getPosition()
 		glBegin(GL_TRIANGLES)
-		glColor3f(0.5, 0.5, 0.5)
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.7, 0.6, 0.6, 1.0))
 		for face, norm in zip(self.faces, self.norms):
 			glNormal3f(*norm)
 			glVertex3f(*self.verts[face[0]])
