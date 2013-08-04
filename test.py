@@ -311,8 +311,8 @@ class Composite:
 class Terrain:
 	def __init__(self, world, space):
 
-		self.verts = [(-100,0., -100.), (-100.,0.,100.), (100.,0.,0.)]
-		self.faces = [(0,1,2)]
+		self.verts = [(2,0., -2.), (2.,0.,2.), (-4.,0.,0.)]
+		self.faces = [(2,1,0)]
 
 		self.meshdata = ode.TriMeshData()  #create the data buffer
 		self.meshdata.build(self.verts, self.faces)  #Put vertex and face data into the buffer
@@ -336,13 +336,10 @@ class Terrain:
 
 			self.norms.append(c)
 
-
 	def Draw(self):
 		#print self.body.getPosition()
-		pass
 		glBegin(GL_TRIANGLES)
 		glColor3f(0.5, 0.5, 0.5)
-		
 		for face, norm in zip(self.faces, self.norms):
 			glNormal3f(*norm)
 			glVertex3f(*self.verts[face[0]])
