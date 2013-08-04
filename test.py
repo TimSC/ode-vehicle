@@ -288,17 +288,6 @@ class Composite:
 		self.parts.append(Rod(self.parts[5], self.parts[3]))
 		self.parts.append(Rod(self.parts[2], self.parts[3]))
 
-		# Connect body2 with body1
-		#self.j2 = ode.SliderJoint(world)
-		#self.j2.attach(self.body1, self.body2)
-		#self.j2.setAnchor( (self.radius*2.1,0.,0.) )
-		self.joint = ode.AMotor(world)
-		self.joint.attach(self.parts[0].body, self.parts[2].body)
-		self.joint.setNumAxes(1)
-		#self.joint.setMode(ode.AMotorEuler)
-		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
-
-
 	def Draw(self):
 		for part in self.parts:
 			part.Draw()
@@ -314,12 +303,35 @@ class Composite:
 		return self.body1.getPosition()
 		
 	def UpdateInternalForces(self):
-		#self.body1.addTorque((100.0,0.,0.))
-		#self.body2.addTorque((100.0,0.,0.))
-		#self.joint.addTorques(-20.,0.,0.)
-		#self.joint2.addTorques(-20.,0.,0.)
 		for part in self.parts:
 			part.UpdateInternalForces()
+
+##########################################################
+
+class Terrain:
+	def __init__(self, world, space):
+
+		self.body = ode.Body(world)
+		self.j = ode.FixedJoint(world)
+		self.j.attach(self.body, ode.environment)
+		self.j.setFixed()
+
+		self.verts = [(-100,0., -100.), (-100.,0.,100.), (100.,0.,0.)]
+		self.faces = [(0,1,2)]
+
+		self.meshdata = ode.TriMeshData()  #create the data buffer
+		self.meshdata.build(self.verts, self.faces)  #Put vertex and face data into the buffer
+		self.mesh = ode.GeomTriMesh(self.meshdata, space) #create collide mesh
+		self.mesh.setBody(self.body)
+		self.mesh.setPosition((0.,0.,0.))
+
+	def Draw(self):
+		#print self.body.getPosition()
+		pass
+		
+
+##########################################################
+
 
 # drop_object
 def drop_object():
@@ -383,6 +395,7 @@ def near_callback(args, geom1, geom2):
 
 	# Check if the objects do collide
 	contacts = ode.collide(geom1, geom2)
+	#print len(contacts)
 
 	# Create contact joints
 	world,contactgroup = args
@@ -419,7 +432,8 @@ world.setCFM(1E-5)
 space = ode.Space()
 
 # Create a plane geom which prevent the objects from falling forever
-floor = ode.GeomPlane(space, (0,1,0), 0)
+#floor = ode.GeomPlane(space, (0,1,0), 0)
+terrain = Terrain(world, space)
 
 objs = []
 
@@ -447,6 +461,8 @@ glutKeyboardFunc (_keyfunc)
 def _drawfunc ():
 	# Draw the scene
 	prepare_GL()
+
+	terrain.Draw()
 	for obj in objs:
 		obj.Draw()
 
