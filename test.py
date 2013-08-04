@@ -158,23 +158,79 @@ class Ball:
 	def Test(self):
 		pass
 
+class Cylinder:
+	def __init__(self, world, space, density, rad):
+
+		self.l = 1.
+
+		# Create body
+		self.body = ode.Body(world)
+		M = ode.Mass()
+		M.setCappedCylinder(density, 3, rad, self.l)
+		self.body.setMass(M)
+
+		# Set parameters for drawing the body
+		self.radius = rad
+
+		# Create a box geom for collision detection
+		self.geom = ode.GeomCapsule(space, self.radius, self.l)
+		self.geom.setBody(self.body)
+		self.geom.ty = "cylinder"
+
+	def Draw(self):
+		x,y,z = self.body.getPosition()
+		R = self.body.getRotation()
+		rot = [R[0], R[3], R[6], 0.,
+			   R[1], R[4], R[7], 0.,
+			   R[2], R[5], R[8], 0.,
+			   x, y, z, 1.0]
+		glPushMatrix()
+		glMultMatrixd(rot)
+
+		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
+
+
+		glPopMatrix()
+
+	def setPosition(self, pos):
+		self.body.setPosition(pos)
+
+	def setRotation(self, rot):
+		self.body.setRotation(rot)
+
+	def getPosition(self):
+		return self.body.getPosition()
+
+	def getRotation(self):
+		return self.body.getRotation()
+
+	def addForce(self, f):
+		self.body.addForce(f)
+
+	def Test(self):
+		pass
+
 class Composite:
 	def __init__(self, world, space, density, rad):
-		"""Create a box body and its corresponding geom."""
+
+		# Set parameters for drawing the body
+		self.radius = rad
 
 		# Create body
 		self.body1 = ode.Body(world)
 		M = ode.Mass()
-		M.setSphere(density, rad)
+		M.setCappedCylinder(density, 3, self.radius, 1.)
 		self.body1.setMass(M)
 
 		self.body2 = ode.Body(world)
 		M = ode.Mass()
-		M.setSphere(density, rad)
+		M.setCappedCylinder(density, 3, self.radius, 1.)
 		self.body2.setMass(M)
 
-		# Set parameters for drawing the body
-		self.radius = rad
+		self.body3 = ode.Body(world)
+		M = ode.Mass()
+		M.setCappedCylinder(density * 10., 3, self.radius, 1.)
+		self.body3.setMass(M)
 
 		self.setPosition((0.,0.,0.))
 
@@ -183,17 +239,18 @@ class Composite:
 		#self.j2.attach(self.body1, self.body2)
 		#self.j2.setAnchor( (self.radius*2.1,0.,0.) )
 		self.joint = ode.AMotor(world)
-		self.joint.attach(self.body1, self.body2)
+		self.joint.attach(self.body3, self.body2)
 		self.joint.setNumAxes(1)
 		#self.joint.setMode(ode. AMotorEuler)
 		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
 		
-
 		# Create a box geom for collision detection
-		self.geom1 = ode.GeomSphere(space, self.radius)
+		self.geom1 = ode.GeomCapsule(space, self.radius, 1.)
 		self.geom1.setBody(self.body1)
-		self.geom2 = ode.GeomSphere(space, self.radius)
+		self.geom2 = ode.GeomCapsule(space, self.radius, 1.)
 		self.geom2.setBody(self.body2)
+		self.geom3 = ode.GeomCapsule(space, self.radius, 1.)
+		self.geom3.setBody(self.body3)
 		self.geom1.ty = "composite"
 
 	def DrawBall(self, obj):
@@ -207,21 +264,27 @@ class Composite:
 		glMultMatrixd(rot)
 
 		glScalef(self.radius, self.radius, self.radius)
-		glutSolidSphere(1, 10, 10)
+		gluCylinder(gluNewQuadric(), self.radius, self.radius, 1., 10, 2)
 
 		glPopMatrix()
 
 	def Draw(self):
 		self.DrawBall(self.body1)
 		self.DrawBall(self.body2)
+		self.DrawBall(self.body3)
 
 	def setPosition(self, pos):
+		#self.body1.setPosition(pos)
+		#self.body2.setPosition((pos[0]+self.radius*2.1,pos[1],pos[2]))
+		#self.body3.setPosition((pos[0]+self.radius*1.05,pos[1]+self.radius*1.05,pos[2]))
 		self.body1.setPosition(pos)
-		self.body2.setPosition((pos[0]+self.radius*2.1,pos[1],pos[2]))
+		self.body2.setPosition((pos[0],pos[1]+self.radius*2.05,pos[2]))
+		self.body3.setPosition((pos[0],pos[1]+self.radius*4.1,pos[2]))
 
 	def setRotation(self, rot):
 		self.body1.setRotation(rot)
 		self.body2.setRotation(rot)
+		self.body3.setRotation(rot)
 
 	def getPosition(self):
 		return self.body1.getPosition()
@@ -252,7 +315,8 @@ def drop_object():
 	#if random.randint(0,2) % 2 == 0:
 	#	obj = Box(world, space, 1000, 1.0,0.2,0.2)
 	#else:
-	obj = Composite(world, space, 1000, 0.3)
+	#obj = Box(world, space, 1000, 1.0,0.2,0.2)
+	obj = Cylinder(world, space, 1000, 0.1)
 
 	obj.setPosition( (random.gauss(0,0.1),3.0,random.gauss(0,0.1)) )
 	#theta = random.uniform(0,2*pi)
@@ -392,7 +456,7 @@ def _idlefunc ():
 	if state==0:
 		if counter==20:
 			drop_object()
-		if objcount==1:
+		if objcount==100:
 			state=1
 			counter=0
 	# State 1: Explosion and pulling back the objects
@@ -413,8 +477,8 @@ def _idlefunc ():
 		# Detect collisions and create contact joints
 		space.collide((world,contactgroup), near_callback)
 
-		for obj in objs:
-			obj.Test()
+		#for obj in objs:
+		#	obj.Test()
 
 		# Simulation step
 		world.step(dt/n)
