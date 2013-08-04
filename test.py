@@ -21,7 +21,7 @@ def length (vec):
 	return sqrt (vec[0]**2 + vec[1]**2 + vec[2]**2)
 
 # prepare_GL
-def prepare_GL(targ):
+def prepare_GL(cam, targ):
 	"""Prepare drawing.
 	"""
 
@@ -53,7 +53,7 @@ def prepare_GL(targ):
 	glEnable(GL_LIGHT0)
 
 	# View transformation
-	gluLookAt (2.4, 3.6, 4.8,targ[0], targ[1], targ[2], 0, 1, 0)
+	gluLookAt (cam[0], cam[1], cam[2], targ[0], targ[1], targ[2], 0, 1, 0)
 
 class Box:
 	def __init__(self, world, space, density, lx, ly, lz):
@@ -245,6 +245,8 @@ class Motor:
 		self.joint.attach(obj.body, obj2.body)
 		self.joint.setNumAxes(1)
 		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
+		self.joint.setParam(ode.ParamVel, 15.)
+		self.joint.setParam(ode.ParamFMax, self.torque)
 
 	def setPosition(self, pos):
 		self.body.setPosition(pos)
@@ -266,9 +268,11 @@ class Motor:
 		glPopMatrix()
 
 	def UpdateInternalForces(self):
-		self.joint.addTorques(self.torque,0.,0.)
+		pass
 
-class Composite:
+		#self.joint.addTorques(self.torque,0.,0.)
+
+class Vehicle:
 	def __init__(self, world, space, density, rad):
 
 		self.parts = []
@@ -279,8 +283,8 @@ class Composite:
 
 		self.setPosition((0.,0.,0.))
 
-		self.parts.append(Motor(self.parts[0], -20., self.parts[2]))
-		self.parts.append(Motor(self.parts[1], -20., self.parts[2]))
+		self.parts.append(Motor(self.parts[0], 20., self.parts[2]))
+		self.parts.append(Motor(self.parts[1], 20., self.parts[2]))
 
 		self.parts.append(Rod(self.parts[4], self.parts[2]))
 		self.parts.append(Rod(self.parts[5], self.parts[2]))
@@ -300,7 +304,7 @@ class Composite:
 		self.parts[3].setPosition((pos[0]+0.51,pos[1]+0.15,pos[2]))
 
 	def getPosition(self):
-		return self.parts[0].getPosition()
+		return self.parts[2].getPosition()
 		
 	def UpdateInternalForces(self):
 		for part in self.parts:
@@ -311,9 +315,17 @@ class Composite:
 class Terrain:
 	def __init__(self, world, space):
 
-		self.verts = [(-2.,0.,-2.), (2.,0.,2.), (2,0., -2.), (-2., 0., 2.),
-				(2.,-.3,-2.), (6.,-.3,2.), (6,-.3, -2.), (2., -.3, 2.)]
-		self.faces = [(0,1,2),(0,3,1),(4,5,6),(4,7,5)]
+		self.x = range(-100, 100)
+		self.y = [0.2 * cos(i) for i in self.x]
+
+		self.verts = []
+		self.faces = []
+
+		for i in range(1, len(self.x)):
+			count = len(self.verts)
+			self.verts.extend([(self.x[i-1],self.y[i-1],-2.), (self.x[i],self.y[i],2.), 
+				(self.x[i],self.y[i], -2.), (self.x[i-1], self.y[i-1], 2.)])
+			self.faces.extend([(count,count+1,count+2),(count,count+3,count+1)])
 
 		self.meshdata = ode.TriMeshData()  #create the data buffer
 		self.meshdata.build(self.verts, self.faces)  #Put vertex and face data into the buffer
@@ -334,7 +346,6 @@ class Terrain:
 			mag = (c[0]*c[0]+c[1]*c[1]+c[2]*c[2]) ** 0.5
 			if mag > 0.:
 				c = [v / mag for v in c]
-				print c
 
 			self.norms.append(c)
 
@@ -359,7 +370,7 @@ def drop_object():
 
 	global bodies, geom, counter, objcount, objs
 
-	obj = Composite(world, space, 1000, 0.1)
+	obj = Vehicle(world, space, 1000, 0.1)
 
 	obj.setPosition( (random.gauss(0,0.1),0.5,random.gauss(0,0.1)) )
 	#theta = random.uniform(0,2*pi)
@@ -481,9 +492,12 @@ glutKeyboardFunc (_keyfunc)
 def _drawfunc ():
 	# Draw the scene
 	if len(objs) == 0:
-		prepare_GL((0.,0.,0.))
+		prepare_GL((2.4, 3.6, 4.8), (0.,0.,0.))
 	else:
-		prepare_GL(objs[0].getPosition())
+		camOff = (2.4, 3.6, 4.8)
+		vehPos = objs[0].getPosition()
+		cam = [a + b for a,b in zip(camOff, vehPos)]
+		prepare_GL(cam, vehPos)
 
 	terrain.Draw()
 	for obj in objs:
