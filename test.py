@@ -272,14 +272,13 @@ class Spring:
 		p2 = self.obj2.getPosition()
 		vec = [a - b for a, b in zip(p1, p2)]
 		mag = self.CalcDist()
-		#print p1, p2, mag
 
 		self.j = ode.SliderJoint(world)
 		self.j.attach(obj1.body, obj2.body)
 		self.j.setFeedback(True)
-		self.j.setAxis(vec)
-		self.j.setParam(ode.ParamLoStop, mag)
-		self.j.setParam(ode.ParamHiStop, mag)
+		self.j.setAxis(vec) #This also sets the natural length
+		self.j.setParam(ode.ParamLoStop, 0.)
+		self.j.setParam(ode.ParamHiStop, 0.)
 		self.j.setParam(ode.ParamFMax, 50.)
 		self.j.setParam(ode.ParamStopCFM, 0.05)
 		
@@ -389,7 +388,7 @@ class Vehicle:
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 
-		pos = (0., 5., 0.)
+		pos = (0., 1., 0.)
 		self.parts[0].setPosition(pos)
 		self.parts[1].setPosition((pos[0]+1.,pos[1],pos[2]))
 		self.parts[2].setPosition((pos[0]+0.51,pos[1]+0.45,pos[2]))
