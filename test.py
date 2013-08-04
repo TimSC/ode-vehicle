@@ -104,7 +104,7 @@ class Box:
 	def addForce(self, f):
 		self.body.addForce(f)
 
-	def Test(self):
+	def UpdateInternalForces(self):
 		pass
 
 class Ball:
@@ -155,7 +155,7 @@ class Ball:
 	def addForce(self, f):
 		self.body.addForce(f)
 
-	def Test(self):
+	def UpdateInternalForces(self):
 		pass
 
 class Cylinder:
@@ -207,8 +207,44 @@ class Cylinder:
 	def addForce(self, f):
 		self.body.addForce(f)
 
-	def Test(self):
+	def UpdateInternalForces(self):
 		pass
+
+class Spring:
+	def __init__(self, obj1, obj2, k = 100.):
+		self.obj1 = obj1
+		self.obj2 = obj2
+		self.naturalLen = self.CalcDist()
+		self.k = k
+
+	def setPosition(self, pos):
+		pass
+
+	def CalcDist(self):
+		pos1 = self.obj1.getPosition()
+		pos2 = self.obj2.getPosition()
+		diff = (pos1[0] - pos2[0], pos1[1] - pos2[1], pos1[2] - pos2[2])
+		diffSq = [v * v for v in diff]
+		return sum(diffSq) ** 0.5
+
+	def Draw(self):
+		pass
+
+	def UpdateInternalForces(self):
+		l = self.CalcDist()
+		pos1 = self.obj1.getPosition()
+		pos2 = self.obj2.getPosition()
+		v = (pos1[0] - pos2[0], pos1[1] - pos2[1], pos1[2] - pos2[2])
+		if l > 0.:
+			nv = [c / l for c in v]
+		else:
+			nv = v
+		f = (l - self.naturalLen) * self.k
+
+		fv1 = [-c * f for c in nv]
+		fv2 = [c * f for c in nv]
+		self.obj1.body.addForce(fv1)
+		self.obj2.body.addForce(fv2)
 
 class Composite:
 	def __init__(self, world, space, density, rad):
@@ -220,24 +256,19 @@ class Composite:
 
 		self.setPosition((0.,0.,0.))
 
+		self.parts.append(Spring(self.parts[0], self.parts[1], 10000.))
+		self.parts.append(Spring(self.parts[1], self.parts[2], 10000.))
+		self.parts.append(Spring(self.parts[2], self.parts[0], 10000.))
+
 		# Connect body2 with body1
 		#self.j2 = ode.SliderJoint(world)
 		#self.j2.attach(self.body1, self.body2)
 		#self.j2.setAnchor( (self.radius*2.1,0.,0.) )
-		self.joint = ode.AMotor(world)
-		self.joint.attach(self.body3, self.body2)
-		self.joint.setNumAxes(1)
+		#self.joint = ode.AMotor(world)
+		#self.joint.attach(self.body3, self.body2)
+		#self.joint.setNumAxes(1)
 		#self.joint.setMode(ode. AMotorEuler)
-		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
-		
-		# Create a box geom for collision detection
-		self.geom1 = ode.GeomCapsule(space, self.radius, 1.)
-		self.geom1.setBody(self.body1)
-		self.geom2 = ode.GeomCapsule(space, self.radius, 1.)
-		self.geom2.setBody(self.body2)
-		self.geom3 = ode.GeomCapsule(space, self.radius, 1.)
-		self.geom3.setBody(self.body3)
-		self.geom1.ty = "composite"
+		#self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
 
 	def Draw(self):
 		for part in self.parts:
@@ -247,16 +278,17 @@ class Composite:
 		
 		self.parts[0].setPosition(pos)
 		self.parts[1].setPosition((pos[0]+1.,pos[1],pos[2]))
-		self.parts[2].setPosition((pos[0],pos[1]+1.,pos[2]))
+		self.parts[2].setPosition((pos[0]+0.51,pos[1]+0.3,pos[2]))
 
 	def getPosition(self):
 		return self.body1.getPosition()
 		
-	def Test(self):
+	def UpdateInternalForces(self):
 		#self.body1.addTorque((100.0,0.,0.))
 		#self.body2.addTorque((100.0,0.,0.))
 		#self.joint.addTorques(200.,0.,0.)
-		pass
+		for part in self.parts:
+			part.UpdateInternalForces()
 
 # drop_object
 def drop_object():
@@ -266,7 +298,7 @@ def drop_object():
 
 	obj = Composite(world, space, 1000, 0.1)
 
-	obj.setPosition( (random.gauss(0,0.1),3.0,random.gauss(0,0.1)) )
+	obj.setPosition( (random.gauss(0,0.1),0.5,random.gauss(0,0.1)) )
 	#theta = random.uniform(0,2*pi)
 	#ct = cos (theta)
 	#st = sin (theta)
@@ -404,7 +436,7 @@ def _idlefunc ():
 	if state==0:
 		if counter==20:
 			drop_object()
-		if objcount==100:
+		if objcount==1:
 			state=1
 			counter=0
 	# State 1: Explosion and pulling back the objects
@@ -425,8 +457,8 @@ def _idlefunc ():
 		# Detect collisions and create contact joints
 		space.collide((world,contactgroup), near_callback)
 
-		#for obj in objs:
-		#	obj.Test()
+		for obj in objs:
+			obj.UpdateInternalForces()
 
 		# Simulation step
 		world.step(dt/n)
