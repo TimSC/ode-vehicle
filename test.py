@@ -311,18 +311,12 @@ class Composite:
 class Terrain:
 	def __init__(self, world, space):
 
-		self.body = ode.Body(world)
-		self.j = ode.FixedJoint(world)
-		self.j.attach(self.body, ode.environment)
-		self.j.setFixed()
-
 		self.verts = [(-100,0., -100.), (-100.,0.,100.), (100.,0.,0.)]
 		self.faces = [(0,1,2)]
 
 		self.meshdata = ode.TriMeshData()  #create the data buffer
 		self.meshdata.build(self.verts, self.faces)  #Put vertex and face data into the buffer
 		self.mesh = ode.GeomTriMesh(self.meshdata, space) #create collide mesh
-		self.mesh.setBody(self.body)
 		self.mesh.setPosition((0.,0.,0.))
 
 	def Draw(self):
