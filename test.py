@@ -188,8 +188,6 @@ class Cylinder:
 		glMultMatrixd(rot)
 
 		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
-
-
 		glPopMatrix()
 
 	def setPosition(self, pos):
@@ -215,13 +213,9 @@ class Rod:
 		self.obj1 = obj1
 		self.obj2 = obj2
 
-		pos1 = self.obj1.getPosition()
-		pos2 = self.obj2.getPosition()
-		diff = (pos1[0] - pos2[0], pos1[1] - pos2[1], pos1[2] - pos2[2])
-
-		self.j = ode.BallJoint(world)
+		self.j = ode.FixedJoint(world)
 		self.j.attach(obj1.body, obj2.body)
-		#self.j.setAnchor( diff )
+		self.j.setFixed()
 
 	def setPosition(self, pos):
 		pass
@@ -232,21 +226,66 @@ class Rod:
 	def UpdateInternalForces(self):
 		pass
 
+class Motor:
+	def __init__(self, obj, tor, obj2):
+		self.torque = tor
+
+		# Create body
+		self.body = ode.Body(world)
+		M = ode.Mass()
+		M.setCappedCylinder(100., 3, 0.1, 1.)
+		self.body.setMass(M)
+		self.body.setPosition(obj.getPosition())
+
+		self.axle = ode.HingeJoint(world)
+		self.axle.attach(obj.body, self.body)
+		self.axle.setAxis((0., 0., 1.))
+
+		self.joint = ode.AMotor(world)
+		self.joint.attach(obj.body, obj2.body)
+		self.joint.setNumAxes(1)
+		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
+
+	def setPosition(self, pos):
+		self.body.setPosition(pos)
+
+	def getPosition(self):
+		return self.body.getPosition()
+
+	def Draw(self):
+		x,y,z = self.body.getPosition()
+		R = self.body.getRotation()
+		rot = [R[0], R[3], R[6], 0.,
+			   R[1], R[4], R[7], 0.,
+			   R[2], R[5], R[8], 0.,
+			   x, y, z, 1.0]
+		glPushMatrix()
+		glMultMatrixd(rot)
+
+		gluCylinder(gluNewQuadric(), 0.1, 0.1, 1.1, 10, 3)
+		glPopMatrix()
+
+	def UpdateInternalForces(self):
+		self.joint.addTorques(self.torque,0.,0.)
+
 class Composite:
 	def __init__(self, world, space, density, rad):
 
 		self.parts = []
-		self.parts.append(Cylinder(world, space, 1000., 0.1))
-		self.parts.append(Cylinder(world, space, 1000., 0.1))
+		self.parts.append(Cylinder(world, space, 300., 0.2))
+		self.parts.append(Cylinder(world, space, 300., 0.2))
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 
 		self.setPosition((0.,0.,0.))
 
-		self.parts.append(Rod(self.parts[0], self.parts[2]))
-		self.parts.append(Rod(self.parts[1], self.parts[2]))
-		self.parts.append(Rod(self.parts[0], self.parts[3]))
-		self.parts.append(Rod(self.parts[1], self.parts[3]))
+		self.parts.append(Motor(self.parts[0], -20., self.parts[2]))
+		self.parts.append(Motor(self.parts[1], -20., self.parts[2]))
+
+		self.parts.append(Rod(self.parts[4], self.parts[2]))
+		self.parts.append(Rod(self.parts[5], self.parts[2]))
+		self.parts.append(Rod(self.parts[4], self.parts[3]))
+		self.parts.append(Rod(self.parts[5], self.parts[3]))
 		self.parts.append(Rod(self.parts[2], self.parts[3]))
 
 		# Connect body2 with body1
@@ -259,10 +298,6 @@ class Composite:
 		#self.joint.setMode(ode.AMotorEuler)
 		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
 
-		self.joint2 = ode.AMotor(world)
-		self.joint2.attach(self.parts[1].body, self.parts[2].body)
-		self.joint2.setNumAxes(1)
-		self.joint2.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
 
 	def Draw(self):
 		for part in self.parts:
@@ -281,7 +316,7 @@ class Composite:
 	def UpdateInternalForces(self):
 		#self.body1.addTorque((100.0,0.,0.))
 		#self.body2.addTorque((100.0,0.,0.))
-		self.joint.addTorques(-20.,0.,0.)
+		#self.joint.addTorques(-20.,0.,0.)
 		#self.joint2.addTorques(-20.,0.,0.)
 		for part in self.parts:
 			part.UpdateInternalForces()
