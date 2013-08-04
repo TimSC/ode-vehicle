@@ -142,8 +142,6 @@ class Ball:
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.8, 0.2, 1.0))
 		glutSolidSphere(1, 10, 10)
 
-
-
 		glPopMatrix()
 
 	def setPosition(self, pos):
@@ -194,20 +192,22 @@ class Cylinder:
 		glMultMatrixd(rot)
 
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.8, 0.9, 1.0))
-		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
 
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.8, 0.9, 1.0))
+		glPushMatrix()
+		glTranslatef(0.,0.,-self.l/2.)
+		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
+		glPopMatrix()
+
 		glNormal3f(0.,0.,-1.)
 		glBegin(GL_POLYGON)
 		for i in range(10):
-			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), 0.)
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), -self.l/2.)
 		glEnd()
 
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.8, 0.9, 1.0))
 		glBegin(GL_POLYGON)
 		glNormal3f(0.,0.,1.)
 		for i in range(10):
-			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), self.l)
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), self.l/2.)
 		glEnd()
 
 		glPopMatrix()
@@ -243,18 +243,19 @@ class Rod:
 		pass
 
 	def Draw(self):
+
 		p1 = self.obj1.body.getPosition()
 		p2 = self.obj2.body.getPosition()
+		r1 = self.obj1.body.getRotation()
 
 		#glDisable(GL_LIGHTING)
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.5, 0.8, 0.5))
 		glBegin(GL_POLYGON)
-		glVertex3f(p1[0],p1[1],p1[2]+0.)
-		glVertex3f(p2[0],p2[1],p2[2]+0.)
-		glVertex3f(p2[0],p2[1],p2[2]+1.)
-		glVertex3f(p1[0],p1[1],p1[2]+1.)
+		glVertex3f(p1[0]-0.5*r1[2],p1[1]-0.5*r1[5],p1[2]-0.5*r1[8])
+		glVertex3f(p2[0]-0.5*r1[2],p2[1]-0.5*r1[5],p2[2]-0.5*r1[8])
+		glVertex3f(p2[0]+0.5*r1[2],p2[1]+0.5*r1[5],p2[2]+0.5*r1[8])
+		glVertex3f(p1[0]+0.5*r1[2],p1[1]+0.5*r1[5],p1[2]+0.5*r1[8])
 		glEnd()
-		#glEnable(GL_LIGHTING)
 
 	def UpdateInternalForces(self):
 		pass
@@ -264,14 +265,14 @@ class Spring:
 		self.obj1 = obj1
 		self.obj2 = obj2
 
-		#self.naturalDist = self.CalcDist()
+		self.naturalDist = self.CalcDist()
 		#print self.naturalDist
 
 		p1 = self.obj1.getPosition()
 		p2 = self.obj2.getPosition()
 		vec = [a - b for a, b in zip(p1, p2)]
 		mag = self.CalcDist()
-		print p1, p2, mag
+		#print p1, p2, mag
 
 		self.j = ode.SliderJoint(world)
 		self.j.attach(obj1.body, obj2.body)
@@ -293,20 +294,23 @@ class Spring:
 		pass
 
 	def Draw(self):
+
 		p1 = self.obj1.body.getPosition()
 		p2 = self.obj2.body.getPosition()
+		r1 = self.obj1.body.getRotation()
 
 		#glDisable(GL_LIGHTING)
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.2, 0.1, 0.5))
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.1, 0.5, 0.8, 0.5))
 		glBegin(GL_POLYGON)
-		glVertex3f(p1[0],p1[1],p1[2]+0.)
-		glVertex3f(p2[0],p2[1],p2[2]+0.)
-		glVertex3f(p2[0],p2[1],p2[2]+1.)
-		glVertex3f(p1[0],p1[1],p1[2]+1.)
+		glVertex3f(p1[0]-0.5*r1[2],p1[1]-0.5*r1[5],p1[2]-0.5*r1[8])
+		glVertex3f(p2[0]-0.5*r1[2],p2[1]-0.5*r1[5],p2[2]-0.5*r1[8])
+		glVertex3f(p2[0]+0.5*r1[2],p2[1]+0.5*r1[5],p2[2]+0.5*r1[8])
+		glVertex3f(p1[0]+0.5*r1[2],p1[1]+0.5*r1[5],p1[2]+0.5*r1[8])
 		glEnd()
-		#glEnable(GL_LIGHTING)
 
 	def UpdateInternalForces(self):
+		#print self.j.getPosition(), self.naturalDist
+		#print self.j.getFeedback()
 		pass
 
 class Motor:
@@ -351,18 +355,22 @@ class Motor:
 		glMultMatrixd(rot)
 
 		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.2, 0.2, 0.2, 1.0))
+
+		glPushMatrix()
+		glTranslatef(0.,0.,-self.l/2.)
 		gluCylinder(gluNewQuadric(), self.radius, self.radius, self.l, 10, 3)
+		glPopMatrix()
 
 		glNormal3f(0.,0.,-1.)
 		glBegin(GL_POLYGON)
 		for i in range(10):
-			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), 0.)
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), -self.l/2.)
 		glEnd()
 
 		glBegin(GL_POLYGON)
 		glNormal3f(0.,0.,1.)
 		for i in range(10):
-			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), self.l)
+			glVertex3f(-self.radius * sin(i * 2. * pi / 10.), self.radius * cos(i * 2. * pi / 10.), self.l/2.)
 		glEnd()
 
 		glPopMatrix()
@@ -381,7 +389,7 @@ class Vehicle:
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 
-		pos = (0., 2., 0.)
+		pos = (0., 5., 0.)
 		self.parts[0].setPosition(pos)
 		self.parts[1].setPosition((pos[0]+1.,pos[1],pos[2]))
 		self.parts[2].setPosition((pos[0]+0.51,pos[1]+0.45,pos[2]))
@@ -468,12 +476,6 @@ def drop_object():
 	global bodies, geom, counter, objcount, objs
 
 	obj = Vehicle(world, space, 1000, 0.1)
-
-	obj.setPosition( (random.gauss(0,0.1),0.5,random.gauss(0,0.1)) )
-	#theta = random.uniform(0,2*pi)
-	#ct = cos (theta)
-	#st = sin (theta)
-	#obj.setRotation([ct, 0., -st, 0., 1., 0., st, 0., ct])
 
 	objs.append(obj)
 	counter=0
