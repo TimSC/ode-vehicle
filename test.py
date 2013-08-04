@@ -259,6 +259,56 @@ class Rod:
 	def UpdateInternalForces(self):
 		pass
 
+class Spring:
+	def __init__(self, obj1, obj2):
+		self.obj1 = obj1
+		self.obj2 = obj2
+
+		#self.naturalDist = self.CalcDist()
+		#print self.naturalDist
+
+		p1 = self.obj1.getPosition()
+		p2 = self.obj2.getPosition()
+		vec = [a - b for a, b in zip(p1, p2)]
+		mag = self.CalcDist()
+		print p1, p2, mag
+
+		self.j = ode.SliderJoint(world)
+		self.j.attach(obj1.body, obj2.body)
+		self.j.setFeedback(True)
+		self.j.setAxis(vec)
+		self.j.setParam(ode.ParamLoStop, mag)
+		self.j.setParam(ode.ParamHiStop, mag)
+		self.j.setParam(ode.ParamFMax, 50.)
+		self.j.setParam(ode.ParamStopCFM, 0.05)
+		
+	def CalcDist(self):
+		p1 = self.obj1.getPosition()
+		p2 = self.obj2.getPosition()
+		vec = [a - b for a, b in zip(p1, p2)]
+		vecSq = [v * v for v in vec]
+		return sum(vecSq) ** 0.5
+
+	def setPosition(self, pos):
+		pass
+
+	def Draw(self):
+		p1 = self.obj1.body.getPosition()
+		p2 = self.obj2.body.getPosition()
+
+		#glDisable(GL_LIGHTING)
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (0.8, 0.2, 0.1, 0.5))
+		glBegin(GL_POLYGON)
+		glVertex3f(p1[0],p1[1],p1[2]+0.)
+		glVertex3f(p2[0],p2[1],p2[2]+0.)
+		glVertex3f(p2[0],p2[1],p2[2]+1.)
+		glVertex3f(p1[0],p1[1],p1[2]+1.)
+		glEnd()
+		#glEnable(GL_LIGHTING)
+
+	def UpdateInternalForces(self):
+		pass
+
 class Motor:
 	def __init__(self, obj, torque = 30., maxspeed = 15.):
 		self.torque = torque
@@ -336,11 +386,11 @@ class Vehicle:
 		self.parts.append(Motor(self.parts[0], torque = 30., maxspeed = 15.))
 		self.parts.append(Motor(self.parts[1], torque = 30., maxspeed = 15.))
 
-		self.parts.append(Rod(self.parts[4], self.parts[2]))
-		self.parts.append(Rod(self.parts[5], self.parts[2]))
-		self.parts.append(Rod(self.parts[4], self.parts[3]))
-		self.parts.append(Rod(self.parts[5], self.parts[3]))
-		self.parts.append(Rod(self.parts[2], self.parts[3]))
+		self.parts.append(Spring(self.parts[4], self.parts[2]))
+		self.parts.append(Spring(self.parts[5], self.parts[2]))
+		self.parts.append(Spring(self.parts[4], self.parts[3]))
+		self.parts.append(Spring(self.parts[5], self.parts[3]))
+		self.parts.append(Spring(self.parts[2], self.parts[3]))
 
 	def Draw(self):
 		for part in self.parts:
