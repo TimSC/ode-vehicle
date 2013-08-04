@@ -21,7 +21,7 @@ def length (vec):
 	return sqrt (vec[0]**2 + vec[1]**2 + vec[2]**2)
 
 # prepare_GL
-def prepare_GL():
+def prepare_GL(targ):
 	"""Prepare drawing.
 	"""
 
@@ -53,7 +53,7 @@ def prepare_GL():
 	glEnable(GL_LIGHT0)
 
 	# View transformation
-	gluLookAt (2.4, 3.6, 4.8, 0.5, 0.5, 0, 0, 1, 0)
+	gluLookAt (2.4, 3.6, 4.8,targ[0], targ[1], targ[2], 0, 1, 0)
 
 class Box:
 	def __init__(self, world, space, density, lx, ly, lz):
@@ -300,7 +300,7 @@ class Composite:
 		self.parts[3].setPosition((pos[0]+0.51,pos[1]+0.15,pos[2]))
 
 	def getPosition(self):
-		return self.body1.getPosition()
+		return self.parts[0].getPosition()
 		
 	def UpdateInternalForces(self):
 		for part in self.parts:
@@ -478,7 +478,10 @@ glutKeyboardFunc (_keyfunc)
 # draw callback
 def _drawfunc ():
 	# Draw the scene
-	prepare_GL()
+	if len(objs) == 0:
+		prepare_GL((0.,0.,0.))
+	else:
+		prepare_GL(objs[0].getPosition())
 
 	terrain.Draw()
 	for obj in objs:
