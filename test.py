@@ -381,7 +381,11 @@ class Vehicle:
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 		self.parts.append(Cylinder(world, space, 1000., 0.1))
 
-		self.setPosition((0.,0.,0.))
+		pos = (0., 2., 0.)
+		self.parts[0].setPosition(pos)
+		self.parts[1].setPosition((pos[0]+1.,pos[1],pos[2]))
+		self.parts[2].setPosition((pos[0]+0.51,pos[1]+0.45,pos[2]))
+		self.parts[3].setPosition((pos[0]+0.51,pos[1]+0.15,pos[2]))
 
 		self.parts.append(Motor(self.parts[0], torque = 30., maxspeed = 15.))
 		self.parts.append(Motor(self.parts[1], torque = 30., maxspeed = 15.))
@@ -395,13 +399,6 @@ class Vehicle:
 	def Draw(self):
 		for part in self.parts:
 			part.Draw()
-
-	def setPosition(self, pos):
-		
-		self.parts[0].setPosition(pos)
-		self.parts[1].setPosition((pos[0]+1.,pos[1],pos[2]))
-		self.parts[2].setPosition((pos[0]+0.51,pos[1]+0.45,pos[2]))
-		self.parts[3].setPosition((pos[0]+0.51,pos[1]+0.15,pos[2]))
 
 	def getPosition(self):
 		return self.parts[2].getPosition()
