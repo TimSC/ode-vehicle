@@ -342,9 +342,9 @@ class Terrain:
 		pass
 		glBegin(GL_TRIANGLES)
 		glColor3f(0.5, 0.5, 0.5)
-		glNormal3f(0.,1.,0.)
 		
 		for face, norm in zip(self.faces, self.norms):
+			glNormal3f(*norm)
 			glVertex3f(*self.verts[face[0]])
 			glVertex3f(*self.verts[face[1]])
 			glVertex3f(*self.verts[face[2]])
