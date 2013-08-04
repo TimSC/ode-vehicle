@@ -319,9 +319,36 @@ class Terrain:
 		self.mesh = ode.GeomTriMesh(self.meshdata, space) #create collide mesh
 		self.mesh.setPosition((0.,0.,0.))
 
+		#Compute normals
+		self.norms = []
+		for face in self.faces:
+			#Calc Perpendicular
+			d1 = [a - b for a,b in zip(self.verts[face[0]], self.verts[face[1]])]
+			d2 = [a - b for a,b in zip(self.verts[face[1]], self.verts[face[2]])]
+			c = [d1[1]*d2[2] - d1[2]*d2[1],
+				d1[2]*d2[0] - d1[0]*d2[2],
+				d1[0]*d2[1] - d1[1]*d2[0]]
+
+			#Normalise
+			mag = (c[0]*c[0]+c[1]*c[1]+c[2]*c[2]) ** 0.5
+			if mag > 0.:
+				c = [v / mag for v in c]
+
+			self.norms.append(c)
+
+
 	def Draw(self):
 		#print self.body.getPosition()
 		pass
+		glBegin(GL_TRIANGLES)
+		glColor3f(0.5, 0.5, 0.5)
+		glNormal3f(0.,1.,0.)
+		
+		for face, norm in zip(self.faces, self.norms):
+			glVertex3f(*self.verts[face[0]])
+			glVertex3f(*self.verts[face[1]])
+			glVertex3f(*self.verts[face[2]])
+		glEnd()
 		
 
 ##########################################################
