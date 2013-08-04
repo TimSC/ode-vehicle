@@ -210,41 +210,27 @@ class Cylinder:
 	def UpdateInternalForces(self):
 		pass
 
-class Spring:
-	def __init__(self, obj1, obj2, k = 100.):
+class Rod:
+	def __init__(self, obj1, obj2):
 		self.obj1 = obj1
 		self.obj2 = obj2
-		self.naturalLen = self.CalcDist()
-		self.k = k
 
-	def setPosition(self, pos):
-		pass
-
-	def CalcDist(self):
 		pos1 = self.obj1.getPosition()
 		pos2 = self.obj2.getPosition()
 		diff = (pos1[0] - pos2[0], pos1[1] - pos2[1], pos1[2] - pos2[2])
-		diffSq = [v * v for v in diff]
-		return sum(diffSq) ** 0.5
+
+		self.j = ode.BallJoint(world)
+		self.j.attach(obj1.body, obj2.body)
+		#self.j.setAnchor( diff )
+
+	def setPosition(self, pos):
+		pass
 
 	def Draw(self):
 		pass
 
 	def UpdateInternalForces(self):
-		l = self.CalcDist()
-		pos1 = self.obj1.getPosition()
-		pos2 = self.obj2.getPosition()
-		v = (pos1[0] - pos2[0], pos1[1] - pos2[1], pos1[2] - pos2[2])
-		if l > 0.:
-			nv = [c / l for c in v]
-		else:
-			nv = v
-		f = (l - self.naturalLen) * self.k
-
-		fv1 = [-c * f for c in nv]
-		fv2 = [c * f for c in nv]
-		self.obj1.body.addForce(fv1)
-		self.obj2.body.addForce(fv2)
+		pass
 
 class Composite:
 	def __init__(self, world, space, density, rad):
@@ -256,9 +242,9 @@ class Composite:
 
 		self.setPosition((0.,0.,0.))
 
-		self.parts.append(Spring(self.parts[0], self.parts[1], 10000.))
-		self.parts.append(Spring(self.parts[1], self.parts[2], 10000.))
-		self.parts.append(Spring(self.parts[2], self.parts[0], 10000.))
+		self.parts.append(Rod(self.parts[0], self.parts[1]))
+		self.parts.append(Rod(self.parts[1], self.parts[2]))
+		self.parts.append(Rod(self.parts[2], self.parts[0]))
 
 		# Connect body2 with body1
 		#self.j2 = ode.SliderJoint(world)
