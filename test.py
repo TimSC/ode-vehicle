@@ -242,19 +242,19 @@ class Composite:
 
 		self.setPosition((0.,0.,0.))
 
-		self.parts.append(Rod(self.parts[0], self.parts[1]))
+		self.parts.append(Rod(self.parts[0], self.parts[2]))
 		self.parts.append(Rod(self.parts[1], self.parts[2]))
-		self.parts.append(Rod(self.parts[2], self.parts[0]))
+		self.parts.append(Rod(self.parts[0], self.parts[1]))
 
 		# Connect body2 with body1
 		#self.j2 = ode.SliderJoint(world)
 		#self.j2.attach(self.body1, self.body2)
 		#self.j2.setAnchor( (self.radius*2.1,0.,0.) )
-		#self.joint = ode.AMotor(world)
-		#self.joint.attach(self.body3, self.body2)
-		#self.joint.setNumAxes(1)
-		#self.joint.setMode(ode. AMotorEuler)
-		#self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
+		self.joint = ode.AMotor(world)
+		self.joint.attach(self.part[0], self.part[2])
+		self.joint.setNumAxes(1)
+		#self.joint.setMode(ode.AMotorEuler)
+		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
 
 	def Draw(self):
 		for part in self.parts:
