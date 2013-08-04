@@ -308,6 +308,14 @@ def drop_object():
 
 	global bodies, geom, counter, objcount, objs
 
+	a = random.randint(0,2)
+	if a == 0:
+		obj = Box(world, space, 1000, 1.0,0.2,0.2)
+	if a == 1:
+		obj = Cylinder(world, space, 1000, 0.1)
+	if a == 2:
+		obj = Ball(world, space, 1000, 0.1)
+
 	#if random.randint(0,2) % 2 == 0:
 	#	body, geom = create_box(world, space, 1000, 1.0,0.2,0.2)
 	#else:
@@ -316,13 +324,13 @@ def drop_object():
 	#	obj = Box(world, space, 1000, 1.0,0.2,0.2)
 	#else:
 	#obj = Box(world, space, 1000, 1.0,0.2,0.2)
-	obj = Cylinder(world, space, 1000, 0.1)
+	#obj = Cylinder(world, space, 1000, 0.1)
 
 	obj.setPosition( (random.gauss(0,0.1),3.0,random.gauss(0,0.1)) )
-	#theta = random.uniform(0,2*pi)
-	#ct = cos (theta)
-	#st = sin (theta)
-	#obj.setRotation([ct, 0., -st, 0., 1., 0., st, 0., ct])
+	theta = random.uniform(0,2*pi)
+	ct = cos (theta)
+	st = sin (theta)
+	obj.setRotation([ct, 0., -st, 0., 1., 0., st, 0., ct])
 
 	objs.append(obj)
 	counter=0
