@@ -311,8 +311,9 @@ class Composite:
 class Terrain:
 	def __init__(self, world, space):
 
-		self.verts = [(2,0., -2.), (2.,0.,2.), (-4.,0.,0.)]
-		self.faces = [(2,1,0)]
+		self.verts = [(-2.,0.,-2.), (2.,0.,2.), (2,0., -2.), (-2., 0., 2.),
+				(2.,-.3,-2.), (6.,-.3,2.), (6,-.3, -2.), (2., -.3, 2.)]
+		self.faces = [(0,1,2),(0,3,1),(4,5,6),(4,7,5)]
 
 		self.meshdata = ode.TriMeshData()  #create the data buffer
 		self.meshdata.build(self.verts, self.faces)  #Put vertex and face data into the buffer
@@ -333,6 +334,7 @@ class Terrain:
 			mag = (c[0]*c[0]+c[1]*c[1]+c[2]*c[2]) ** 0.5
 			if mag > 0.:
 				c = [v / mag for v in c]
+				print c
 
 			self.norms.append(c)
 
