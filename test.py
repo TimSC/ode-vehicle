@@ -245,7 +245,7 @@ class Motor:
 		self.joint.attach(obj.body, self.body)
 		self.joint.setNumAxes(1)
 		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
-		self.joint.setParam(ode.ParamVel, 15.)
+		self.joint.setParam(ode.ParamVel, maxspeed)
 		self.joint.setParam(ode.ParamFMax, self.torque)
 
 	def setPosition(self, pos):
