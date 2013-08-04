@@ -227,8 +227,8 @@ class Rod:
 		pass
 
 class Motor:
-	def __init__(self, obj, tor, obj2):
-		self.torque = tor
+	def __init__(self, obj, torque = 30., maxspeed = 15.):
+		self.torque = torque
 
 		# Create body
 		self.body = ode.Body(world)
@@ -242,7 +242,7 @@ class Motor:
 		self.axle.setAxis((0., 0., 1.))
 
 		self.joint = ode.AMotor(world)
-		self.joint.attach(obj.body, obj2.body)
+		self.joint.attach(obj.body, self.body)
 		self.joint.setNumAxes(1)
 		self.joint.setAxis(0, ode.AMotorEuler, (0., 0., 1.))
 		self.joint.setParam(ode.ParamVel, 15.)
@@ -283,8 +283,8 @@ class Vehicle:
 
 		self.setPosition((0.,0.,0.))
 
-		self.parts.append(Motor(self.parts[0], 20., self.parts[2]))
-		self.parts.append(Motor(self.parts[1], 20., self.parts[2]))
+		self.parts.append(Motor(self.parts[0], torque = 30., maxspeed = 15.))
+		self.parts.append(Motor(self.parts[1], torque = 30., maxspeed = 15.))
 
 		self.parts.append(Rod(self.parts[4], self.parts[2]))
 		self.parts.append(Rod(self.parts[5], self.parts[2]))
